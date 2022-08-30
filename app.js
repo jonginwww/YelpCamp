@@ -3,11 +3,12 @@ const path = require('path');
 const mongoose = require('mongoose');
 const ejsMate = require('ejs-mate');
 const Joi = require('joi');
+const {campgroundSchema, reviewSchema} = require('./schemas');
 const methodOverride = require('method-override'); // PUT, DELETE를 사용하기 위한 method-override
 const catchAsync = require('./utils/catchAsync');
 const ExpressError = require('./utils/ExpressError');
 const Campground = require('./models/campground');
-const {title} = require('process');
+const Review = require('./models/review');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp');
 
@@ -29,24 +30,28 @@ app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
 
 const validateCampground = (req, res, next) => {
-    // if (!req.body.campground) throw new ExpressError('Invaild Campground Data', 400);
-    // campgroundSchema는 Mongoose 스키마가 이니다. Mongoose로 저장하기도 전에 데이터 유효성 검사를 한다.
-    const campgroundSchema = Joi.object({
-        // form에서 입력 정보들은 campground로 그룹화 되어있다.
-        campground: Joi.object({
-            title: Joi.string().required(),
-            price: Joi.number().required().min(0),
-            image: Joi.string().required(),
-            location: Joi.string().required(),
-            description: Joi.string().required()
-        }).required()
-    }).required();
-
     const {error} = campgroundSchema.validate(req.body);
     if (error) {
         // 메세지가 두 개 이상이면 쉼표로 합친다.
         const msg = error.details.map(el => el.message).join(',');
+        // 오류가 있으면 작동된다.
         throw new ExpressError(msg, 400);
+    } else {
+        // 유효성 검사를 하고 오류가 없으면 next를 호출한다.
+        next();
+    }
+};
+
+const validateReview = (req, res, next) => {
+    const {error} = reviewSchema.validate(req.body);
+    if (error) {
+        // 메세지가 두 개 이상이면 쉼표로 합친다.
+        const msg = error.details.map(el => el.message).join(',');
+        // 오류가 있으면 작동된다.
+        throw new ExpressError(msg, 400);
+    } else {
+        // 유효성 검사를 하고 오류가 없으면 next를 호출한다.
+        next();
     }
 };
 
@@ -74,6 +79,7 @@ app.get(
 
 app.post(
     '/campgrounds',
+    validateCampground,
     catchAsync(async (req, res, next) => {
         // 새로운 모델 생성
         const campground = new Campground(req.body.campground);
@@ -86,7 +92,8 @@ app.post(
 app.get(
     '/campgrounds/:id',
     catchAsync(async (req, res) => {
-        const campground = await Campground.findById(req.params.id);
+        // cmapground model에 reviews 채워넣기
+        const campground = await Campground.findById(req.params.id).populate('reviews');
         res.render('campgrounds/show', {campground});
     })
 );
@@ -102,6 +109,7 @@ app.get(
 
 app.put(
     '/campgrounds/:id',
+    validateCampground,
     catchAsync(async (req, res) => {
         const {id} = req.params;
         const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground});
@@ -116,6 +124,37 @@ app.delete(
         const {id} = req.params;
         await Campground.findByIdAndDelete(id);
         res.redirect('/campgrounds');
+    })
+);
+
+// Review Create
+app.post(
+    '/campgrounds/:id/reviews',
+    validateReview,
+    catchAsync(async (req, res) => {
+        // 리뷰를 추가하기 전 해당 campground 찾기
+        const campground = await Campground.findById(req.params.id);
+        // 새 리뷰를 인스턴스화 시키기
+        const review = new Review(req.body.review);
+        // 리뷰 배열에 넣기
+        campground.reviews.push(review);
+        // 저장하기
+        await review.save();
+        await campground.save();
+        res.redirect(`/campgrounds/${campground._id}`);
+    })
+);
+
+// Review Delete
+app.delete(
+    '/campgrounds/:id/reviews/:reviewId',
+    catchAsync(async (req, res) => {
+        const {id, reviewId} = req.params;
+        // 참조 삭제
+        await Campground.findByIdAndUpdate(id, {$pull: {reviews: reviewId}});
+        // 리뷰 삭제
+        await Review.findByIdAndDelete(reviewId);
+        res.redirect(`/campgrounds/${id}`);
     })
 );
 
