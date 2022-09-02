@@ -19,6 +19,7 @@ const CampgroundSchema = new Schema({
 });
 
 // Mongoose 미들웨어
+// Delete의 findByIdAndDelete가 실행되면 실행된다.
 CampgroundSchema.post('findOneAndDelete', async function (doc) {
     if (doc) {
         await Review.deleteMany({
