@@ -34,6 +34,7 @@ router.post(
         // 저장하기
         await review.save();
         await campground.save();
+        req.flash('success', '리뷰가 작성되었습니다!');
         res.redirect(`/campgrounds/${campground._id}`);
     })
 );
@@ -47,6 +48,7 @@ router.delete(
         await Campground.findByIdAndUpdate(id, {$pull: {reviews: reviewId}});
         // 리뷰 삭제
         await Review.findByIdAndDelete(reviewId);
+        req.flash('success', '리뷰가 삭제되었습니다!');
         res.redirect(`/campgrounds/${id}`);
     })
 );
