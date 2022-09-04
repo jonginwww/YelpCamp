@@ -56,6 +56,10 @@ router.get(
     catchAsync(async (req, res) => {
         // cmapground model에 reviews 채워넣기
         const campground = await Campground.findById(req.params.id).populate('reviews');
+        if (!campground) {
+            req.flash('error', '캠핑장을 찾을 수 없습니다!');
+            return res.redirect('/campgrounds');
+        }
         res.render('campgrounds/show', {campground});
     })
 );
@@ -65,6 +69,10 @@ router.get(
     '/:id/edit',
     catchAsync(async (req, res) => {
         const campground = await Campground.findById(req.params.id);
+        if (!campground) {
+            req.flash('error', '캠핑장을 찾을 수 없습니다!');
+            return res.redirect('/campgrounds');
+        }
         res.render('campgrounds/edit', {campground});
     })
 );
