@@ -2,7 +2,8 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const ejsMate = require('ejs-mate');
-const methodOverride = require('method-override'); // PUT, DELETE를 사용하기 위한 method-override
+const methodOverride = require('method-override'); // PUT, DELETE를 사용하기 위한 method-
+const session = require('express-session');
 const ExpressError = require('./utils/ExpressError');
 
 // 라우트
@@ -30,6 +31,20 @@ app.use(methodOverride('_method'));
 
 // Static Asset
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Session
+const sessionConfig = {
+    secret: 'thisshouldbeabettersecret!',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        httpOnly: true,
+        // 쿠키 만료 기간
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    }
+};
+app.use(session(sessionConfig));
 
 // home
 app.get('/', (req, res) => {
