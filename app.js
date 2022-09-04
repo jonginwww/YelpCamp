@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const ejsMate = require('ejs-mate');
 const methodOverride = require('method-override'); // PUT, DELETE를 사용하기 위한 method-
 const session = require('express-session');
+const flash = require('connect-flash');
 const ExpressError = require('./utils/ExpressError');
 
 // 라우트
@@ -46,9 +47,20 @@ const sessionConfig = {
 };
 app.use(session(sessionConfig));
 
+// Flash
+app.use(flash());
+
 // home
 app.get('/', (req, res) => {
     res.render('home');
+});
+
+// 플래쉬 로컬 변수 미들웨어
+//
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
 });
 
 // 캠프장 라우터

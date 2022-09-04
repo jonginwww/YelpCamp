@@ -44,6 +44,8 @@ router.post(
         // 새로운 모델 생성
         const campground = new Campground(req.body.campground);
         await campground.save();
+        // 생성이 완료되면 flash 메시지를 띄운다.
+        req.flash('success', '캠핑장을 생성했습니다!');
         res.redirect(`/campgrounds/${campground._id}`);
     })
 );
