@@ -28,6 +28,9 @@ app.set('views', path.join(__dirname, '/views'));
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
 
+// Static Asset
+app.use(express.static(path.join(__dirname, 'public')));
+
 // home
 app.get('/', (req, res) => {
     res.render('home');
