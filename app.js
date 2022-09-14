@@ -6,6 +6,9 @@ const methodOverride = require('method-override'); // PUT, DELETE를 사용하�
 const session = require('express-session');
 const flash = require('connect-flash');
 const ExpressError = require('./utils/ExpressError');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
 
 // 라우트
 const campgrounds = require('./routes/campgrounds');
@@ -45,22 +48,31 @@ const sessionConfig = {
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
 };
+
 app.use(session(sessionConfig));
 
 // Flash
 app.use(flash());
 
-// home
-app.get('/', (req, res) => {
-    res.render('home');
-});
+// passport
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 // 플래쉬 로컬 변수 미들웨어
-//
 app.use((req, res, next) => {
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
+});
+
+app.get('/fakeUser', async (req, res) => {
+    const user = new User({email: 'whddls@naver.com', username: 'jongin'});
+    const newUser = await User.register(user, 'qwer1234');
+    res.send(newUser);
 });
 
 // 캠프장 라우터
@@ -68,6 +80,11 @@ app.use('/campgrounds', campgrounds);
 
 // 리뷰 라우터
 app.use('/campgrounds/:id/reviews', reviews);
+
+// home
+app.get('/', (req, res) => {
+    res.render('home');
+});
 
 // 알 수 없는 URL을 요청하는 경우 작동, Get 요청이든 Post 요청이든 all이 받음.
 app.all('*', (req, res, next) => {
