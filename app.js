@@ -11,8 +11,9 @@ const LocalStrategy = require('passport-local');
 const User = require('./models/user');
 
 // 라우트
-const campgrounds = require('./routes/campgrounds');
-const reviews = require('./routes/reviews');
+const userRoutes = require('./routes/users');
+const campgroundRoutes = require('./routes/campgrounds');
+const reviewRoutes = require('./routes/reviews');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp');
 
@@ -69,17 +70,14 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/fakeUser', async (req, res) => {
-    const user = new User({email: 'whddls@naver.com', username: 'jongin'});
-    const newUser = await User.register(user, 'qwer1234');
-    res.send(newUser);
-});
+// 회원가입 라우터
+app.use('/', userRoutes);
 
 // 캠프장 라우터
-app.use('/campgrounds', campgrounds);
+app.use('/campgrounds', campgroundRoutes);
 
 // 리뷰 라우터
-app.use('/campgrounds/:id/reviews', reviews);
+app.use('/campgrounds/:id/reviews', reviewRoutes);
 
 // home
 app.get('/', (req, res) => {
