@@ -66,6 +66,7 @@ passport.deserializeUser(User.deserializeUser());
 
 // 플래쉬 로컬 변수 미들웨어
 app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
