@@ -11,13 +11,17 @@ router.get('/register', (req, res) => {
 
 router.post(
     '/register',
-    catchAsync(async (req, res) => {
+    catchAsync(async (req, res, next) => {
         try {
             const {email, username, password} = req.body;
             const user = new User({email, username});
             const registerUser = await User.register(user, password);
-            req.flash('success', 'Welcome to Yelp Camp!');
-            res.redirect('/campgrounds');
+            // 회원가입을 성공하면 로그인 상태 유지
+            req.login(registerUser, err => {
+                if (err) return next(err);
+                req.flash('success', 'Welcome to Yelp Camp!');
+                res.redirect('/campgrounds');
+            });
         } catch (e) {
             req.flash('error', e.message);
             res.redirect('register');
@@ -36,11 +40,9 @@ router.post('/login', passport.authenticate('local', {failureFlash: '로그인�
 });
 
 // 로그아웃 라우트
-router.get('/logout', (req, res) => {
+router.get('/logout', (req, res, next) => {
     req.logout(err => {
-        if (err) {
-            return next(err);
-        }
+        if (err) return next(err);
     });
     req.flash('success', '로그아웃 되었습니다.');
     res.redirect('/campgrounds');
