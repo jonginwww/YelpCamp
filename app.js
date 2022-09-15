@@ -60,6 +60,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
 
+// 세션에 정보를 어떻게 저장하고 가져오는지를 결정하는 메서드
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 

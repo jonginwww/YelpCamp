@@ -4,6 +4,7 @@ const {campgroundSchema} = require('../schemas');
 const catchAsync = require('../utils/catchAsync');
 const ExpressError = require('../utils/ExpressError');
 const Campground = require('../models/campground');
+const {isLoggedIn} = require('../middleware');
 
 // 유효성 검사
 const validateCampground = (req, res, next) => {
@@ -30,15 +31,13 @@ router.get(
 );
 
 // creatr
-router.get(
-    '/new',
-    catchAsync(async (req, res) => {
-        res.render('campgrounds/new');
-    })
-);
+router.get('/new', isLoggedIn, (req, res) => {
+    res.render('campgrounds/new');
+});
 
 router.post(
     '/',
+    isLoggedIn,
     validateCampground,
     catchAsync(async (req, res, next) => {
         // 새로운 모델 생성
@@ -67,6 +66,7 @@ router.get(
 // Update
 router.get(
     '/:id/edit',
+    isLoggedIn,
     catchAsync(async (req, res) => {
         const campground = await Campground.findById(req.params.id);
         if (!campground) {
@@ -79,6 +79,7 @@ router.get(
 
 router.put(
     '/:id',
+    isLoggedIn,
     validateCampground,
     catchAsync(async (req, res) => {
         const {id} = req.params;
@@ -91,6 +92,7 @@ router.put(
 // Delete
 router.delete(
     '/:id',
+    isLoggedIn,
     catchAsync(async (req, res) => {
         const {id} = req.params;
         await Campground.findByIdAndDelete(id);
