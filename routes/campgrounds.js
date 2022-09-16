@@ -42,6 +42,8 @@ router.post(
     catchAsync(async (req, res, next) => {
         // 새로운 모델 생성
         const campground = new Campground(req.body.campground);
+        // 사용자 ID 저장하기, req.user에는 자동으로 정보가 들어간다.
+        campground.author = req.user._id;
         await campground.save();
         // 생성이 완료되면 flash 메시지를 띄운다.
         req.flash('success', '캠핑장을 생성했습니다!');
@@ -53,8 +55,8 @@ router.post(
 router.get(
     '/:id',
     catchAsync(async (req, res) => {
-        // cmapground model에 reviews 채워넣기
-        const campground = await Campground.findById(req.params.id).populate('reviews');
+        // cmapground model에 reviews와 author 채워넣기
+        const campground = await Campground.findById(req.params.id).populate('reviews').populate('author');
         if (!campground) {
             req.flash('error', '캠핑장을 찾을 수 없습니다!');
             return res.redirect('/campgrounds');
