@@ -1,6 +1,7 @@
 const {campgroundSchema, reviewSchema} = require('./schemas');
-const Campground = require('./models/campground');
 const ExpressError = require('./utils/ExpressError');
+const Campground = require('./models/campground');
+const Review = require('./models/review');
 
 // 권한 여부를 확인하는 미들웨어
 module.exports.isLoggedIn = (req, res, next) => {
@@ -27,7 +28,7 @@ module.exports.validateCampground = (req, res, next) => {
     }
 };
 
-// 사용자와 작성자 일치 여부를 확인 미들웨어
+// 사용자와 캠핑장 작성자 일치 여부를 확인 미들웨어
 module.exports.isAuthor = async (req, res, next) => {
     const {id} = req.params;
     const campground = await Campground.findById(id);
@@ -50,4 +51,16 @@ module.exports.validateReview = (req, res, next) => {
         // 유효성 검사를 하고 오류가 없으면 next를 호출한다.
         next();
     }
+};
+
+// 사용자와 리뷰 작성자 일치 여부를 확인 미들웨어
+module.exports.isReviewAuthor = async (req, res, next) => {
+    // redirect할 때 id 쓰고 리뷰 권한을 확인할 때 reviewId를 씀.
+    const {id, reviewId} = req.params;
+    const review = await Review.findById(reviewId);
+    if (!review.author.equals(req.user._id)) {
+        req.flash('error', '해당 작업을 수행할 권한이 없습니다.');
+        return res.redirect(`/campgrounds/${id}`);
+    }
+    next();
 };

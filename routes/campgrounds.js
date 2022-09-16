@@ -43,7 +43,18 @@ router.get(
     catchAsync(async (req, res) => {
         const {id} = req.params;
         // cmapground model에 reviews와 author 채워넣기
-        const campground = await Campground.findById(id).populate('reviews').populate('author');
+        const campground = await Campground.findById(id)
+            // 중첩 채워넣기
+            .populate({
+                // 1차 - 캠핑장에 리뷰를 채워 넣는다.
+                path: 'reviews',
+                populate: {
+                    // 2차 - 각각의 리뷰에 작성자를 채워 넣는다.
+                    path: 'author'
+                }
+            })
+            // 캠핑장에 작성자를 채워 넣는다.
+            .populate('author');
         if (!campground) {
             req.flash('error', '캠핑장을 찾을 수 없습니다!');
             return res.redirect('/campgrounds');
