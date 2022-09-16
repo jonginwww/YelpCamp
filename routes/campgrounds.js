@@ -70,10 +70,17 @@ router.get(
     '/:id/edit',
     isLoggedIn,
     catchAsync(async (req, res) => {
-        const campground = await Campground.findById(req.params.id);
+        const {id} = req.params;
+        const campground = await Campground.findById(id);
+        // id와 일치하는 캠핑장이 있는지 확인
         if (!campground) {
             req.flash('error', '캠핑장을 찾을 수 없습니다!');
             return res.redirect('/campgrounds');
+        }
+        // 사용자와 작성자가 일치하는지 확인
+        if (!campground.author.equals(req.user._id)) {
+            req.flash('error', '해당 작업을 수행할 권한이 없습니다.');
+            return res.redirect(`/campgrounds/${id}`);
         }
         res.render('campgrounds/edit', {campground});
     })
@@ -85,7 +92,13 @@ router.put(
     validateCampground,
     catchAsync(async (req, res) => {
         const {id} = req.params;
-        const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground});
+        const campground = await Campground.findById(id);
+        // 사용자와 작성자가 일치하는지 확인
+        if (!campground.author.equals(req.user._id)) {
+            req.flash('error', '해당 작업을 수행할 권한이 없습니다.');
+            return res.redirect(`/campgrounds/${id}`);
+        }
+        const camp = await Campground.findByIdAndUpdate(id, {...req.body.campground});
         req.flash('success', '수정이 완료되었습니다!');
         res.redirect(`/campgrounds/${campground._id}`);
     })
@@ -97,6 +110,12 @@ router.delete(
     isLoggedIn,
     catchAsync(async (req, res) => {
         const {id} = req.params;
+        const campground = await Campground.findById(id);
+        // 사용자와 작성자가 일치하는지 확인
+        if (!campground.author.equals(req.user._id)) {
+            req.flash('error', '해당 작업을 수행할 권한이 없습니다.');
+            return res.redirect(`/campgrounds/${id}`);
+        }
         await Campground.findByIdAndDelete(id);
         req.flash('success', '캠핑장이 삭제되었습니다!');
         res.redirect('/campgrounds');
