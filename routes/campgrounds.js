@@ -1,26 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {campgroundSchema} = require('../schemas');
 const catchAsync = require('../utils/catchAsync');
-const ExpressError = require('../utils/ExpressError');
+// 시드 모델
 const Campground = require('../models/campground');
-const {isLoggedIn} = require('../middleware');
+// 미들웨어
+const {isLoggedIn, validateCampground, isAuthor} = require('../middleware');
 
-// 유효성 검사
-const validateCampground = (req, res, next) => {
-    const {error} = campgroundSchema.validate(req.body);
-    if (error) {
-        // 메세지가 두 개 이상이면 쉼표로 합친다.
-        const msg = error.details.map(el => el.message).join(',');
-        // 오류가 있으면 작동된다.
-        throw new ExpressError(msg, 400);
-    } else {
-        // 유효성 검사를 하고 오류가 없으면 next를 호출한다.
-        next();
-    }
-};
-
-// index
+// Index
 router.get(
     '/',
     catchAsync(async (req, res) => {
@@ -30,7 +16,7 @@ router.get(
     })
 );
 
-// creatr
+// Creatr
 router.get('/new', isLoggedIn, (req, res) => {
     res.render('campgrounds/new');
 });
@@ -51,12 +37,13 @@ router.post(
     })
 );
 
-//show
+//Show
 router.get(
     '/:id',
     catchAsync(async (req, res) => {
+        const {id} = req.params;
         // cmapground model에 reviews와 author 채워넣기
-        const campground = await Campground.findById(req.params.id).populate('reviews').populate('author');
+        const campground = await Campground.findById(id).populate('reviews').populate('author');
         if (!campground) {
             req.flash('error', '캠핑장을 찾을 수 없습니다!');
             return res.redirect('/campgrounds');
@@ -69,6 +56,7 @@ router.get(
 router.get(
     '/:id/edit',
     isLoggedIn,
+    isAuthor,
     catchAsync(async (req, res) => {
         const {id} = req.params;
         const campground = await Campground.findById(id);
@@ -77,11 +65,6 @@ router.get(
             req.flash('error', '캠핑장을 찾을 수 없습니다!');
             return res.redirect('/campgrounds');
         }
-        // 사용자와 작성자가 일치하는지 확인
-        if (!campground.author.equals(req.user._id)) {
-            req.flash('error', '해당 작업을 수행할 권한이 없습니다.');
-            return res.redirect(`/campgrounds/${id}`);
-        }
         res.render('campgrounds/edit', {campground});
     })
 );
@@ -89,16 +72,11 @@ router.get(
 router.put(
     '/:id',
     isLoggedIn,
+    isAuthor,
     validateCampground,
     catchAsync(async (req, res) => {
         const {id} = req.params;
-        const campground = await Campground.findById(id);
-        // 사용자와 작성자가 일치하는지 확인
-        if (!campground.author.equals(req.user._id)) {
-            req.flash('error', '해당 작업을 수행할 권한이 없습니다.');
-            return res.redirect(`/campgrounds/${id}`);
-        }
-        const camp = await Campground.findByIdAndUpdate(id, {...req.body.campground});
+        const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground});
         req.flash('success', '수정이 완료되었습니다!');
         res.redirect(`/campgrounds/${campground._id}`);
     })
@@ -108,14 +86,9 @@ router.put(
 router.delete(
     '/:id',
     isLoggedIn,
+    isAuthor,
     catchAsync(async (req, res) => {
         const {id} = req.params;
-        const campground = await Campground.findById(id);
-        // 사용자와 작성자가 일치하는지 확인
-        if (!campground.author.equals(req.user._id)) {
-            req.flash('error', '해당 작업을 수행할 권한이 없습니다.');
-            return res.redirect(`/campgrounds/${id}`);
-        }
         await Campground.findByIdAndDelete(id);
         req.flash('success', '캠핑장이 삭제되었습니다!');
         res.redirect('/campgrounds');
