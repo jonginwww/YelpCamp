@@ -1,3 +1,9 @@
+// 개발모드에서만 작동
+// 코드를 실행하면 .env 파일을 가져온다.
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
+
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
