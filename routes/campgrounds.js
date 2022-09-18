@@ -8,21 +8,20 @@ const {isLoggedIn, validateCampground, isAuthor} = require('../middleware');
 
 const {render} = require('ejs');
 
-// 인덱스 라우트
-router.get('/', catchAsync(campgrounds.index));
+router
+    .route('/')
+    .get(catchAsync(campgrounds.index))
+    .post(isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
 
-// 캠핑장 생성 라우트
+// id 라우트로 인식 되지 않기 위해 id 라우트 보다 앞에 써줘야 한다.
 router.get('/new', isLoggedIn, campgrounds.renderNewForm);
-router.post('/', isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
 
-// 캠핑장 보기 라우트
-router.get('/:id', catchAsync(campgrounds.showCampground));
+router
+    .route('/:id')
+    .get(catchAsync(campgrounds.showCampground))
+    .put(isLoggedIn, isAuthor, validateCampground, catchAsync(campgrounds.updateCampground))
+    .delete(isLoggedIn, isAuthor, catchAsync(campgrounds.deleteCampground));
 
-// 캠핑장 수정 라우트
 router.get('/:id/edit', isLoggedIn, isAuthor, catchAsync(campgrounds.renderEditForm));
-router.put('/:id', isLoggedIn, isAuthor, validateCampground, catchAsync(campgrounds.updateCampground));
-
-// 캠핑장 삭제 라우트
-router.delete('/:id', isLoggedIn, isAuthor, catchAsync(campgrounds.deleteCampground));
 
 module.exports = router;
