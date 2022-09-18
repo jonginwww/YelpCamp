@@ -6,25 +6,23 @@ const campgrounds = require('../controllers/campgrounds');
 // 미들웨어
 const {isLoggedIn, validateCampground, isAuthor} = require('../middleware');
 
-// 시드 모델
-const Campground = require('../models/campground');
 const {render} = require('ejs');
 
-// Index
+// 인덱스 라우트
 router.get('/', catchAsync(campgrounds.index));
 
-// Creatr
+// 캠핑장 생성 라우트
 router.get('/new', isLoggedIn, campgrounds.renderNewForm);
 router.post('/', isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
 
-//Show
+// 캠핑장 보기 라우트
 router.get('/:id', catchAsync(campgrounds.showCampground));
 
-// Update
+// 캠핑장 수정 라우트
 router.get('/:id/edit', isLoggedIn, isAuthor, catchAsync(campgrounds.renderEditForm));
 router.put('/:id', isLoggedIn, isAuthor, validateCampground, catchAsync(campgrounds.updateCampground));
 
-// Delete
+// 캠핑장 삭제 라우트
 router.delete('/:id', isLoggedIn, isAuthor, catchAsync(campgrounds.deleteCampground));
 
 module.exports = router;
