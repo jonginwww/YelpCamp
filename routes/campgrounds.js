@@ -5,13 +5,17 @@ const catchAsync = require('../utils/catchAsync');
 const campgrounds = require('../controllers/campgrounds');
 // 미들웨어
 const {isLoggedIn, validateCampground, isAuthor} = require('../middleware');
-
-const {render} = require('ejs');
+const multer = require('multer');
+const upload = multer({dest: 'uploads/'});
 
 router
     .route('/')
     .get(catchAsync(campgrounds.index))
-    .post(isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
+    // .post(isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
+    .post(upload.array('image'), (req, res) => {
+        console.log(req.body, req.files);
+        res.send('WORK');
+    });
 
 // id 라우트로 인식 되지 않기 위해 id 라우트 보다 앞에 써줘야 한다.
 router.get('/new', isLoggedIn, campgrounds.renderNewForm);
