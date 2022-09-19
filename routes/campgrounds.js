@@ -6,7 +6,9 @@ const campgrounds = require('../controllers/campgrounds');
 // 미들웨어
 const {isLoggedIn, validateCampground, isAuthor} = require('../middleware');
 const multer = require('multer');
-const upload = multer({dest: 'uploads/'});
+const {storage} = require('../cloudinary');
+// 이미지 저장 장소 설정
+const upload = multer({storage});
 
 router
     .route('/')
