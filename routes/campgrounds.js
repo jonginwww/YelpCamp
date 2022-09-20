@@ -13,11 +13,7 @@ const upload = multer({storage});
 router
     .route('/')
     .get(catchAsync(campgrounds.index))
-    // .post(isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
-    .post(upload.array('image'), (req, res) => {
-        console.log(req.body, req.files);
-        res.send('WORK');
-    });
+    .post(isLoggedIn, upload.array('image'), validateCampground, catchAsync(campgrounds.createCampground));
 
 // id 라우트로 인식 되지 않기 위해 id 라우트 보다 앞에 써줘야 한다.
 router.get('/new', isLoggedIn, campgrounds.renderNewForm);

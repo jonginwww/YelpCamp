@@ -4,8 +4,10 @@
 <div class="row">
     <div class="col-6">
         <div class="card mb-3">
-            <img src="<%= campground.image%>" class="card-img-top" alt="..." />
-
+            <!-- Cloudinary의 URL을 이용해서 이미지 출력 -->
+            <% for(let img of campground.images){ %>
+            <img src="<%= img.url %>" class="card-img-top" alt="..." />
+            <% } %>
             <div class="card-body">
                 <h5 class="card-title"><%= campground.title%></h5>
                 <p class="card-text"><%= campground.description%></p>
