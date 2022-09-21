@@ -9,7 +9,8 @@ module.exports.campgroundSchema = Joi.object({
         // image: Joi.string().required(),
         location: Joi.string().required(),
         description: Joi.string().required()
-    }).required()
+    }).required(),
+    deleteImages: Joi.array()
 });
 
 // 리뷰 유효성 검사

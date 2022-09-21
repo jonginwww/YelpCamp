@@ -20,7 +20,6 @@ module.exports.createCampground = async (req, res, next) => {
     // 사용자 ID 저장하기, req.user에는 자동으로 정보가 들어간다.
     campground.author = req.user._id;
     await campground.save();
-    console.log(campground);
     // 생성이 완료되면 flash 메시지를 띄운다.
     req.flash('success', '캠핑장을 생성했습니다!');
     res.redirect(`/campgrounds/${campground._id}`);
@@ -63,6 +62,7 @@ module.exports.renderEditForm = async (req, res) => {
 
 module.exports.updateCampground = async (req, res) => {
     const {id} = req.params;
+    console.log(req.body);
     const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground});
     const imgs = req.files.map(f => ({url: f.path, filename: f.filename}));
     campground.images.push(...imgs);
