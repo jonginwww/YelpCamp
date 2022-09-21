@@ -2,14 +2,20 @@ const mongoose = require('mongoose');
 const Review = require('./review');
 const Schema = mongoose.Schema;
 
+const ImageSchema = new Schema({
+    url: String,
+    filename: String
+});
+
+// 썸네일 크기 조정
+ImageSchema.virtual('thumbnail').get(function () {
+    // Cloudinary API를 이용해서 크기 조절
+    return this.url.replace('/upload', '/upload/w_200');
+});
+
 const CampgroundSchema = new Schema({
     title: String,
-    images: [
-        {
-            url: String,
-            filename: String
-        }
-    ],
+    images: [ImageSchema],
     price: Number,
     description: String,
     location: String,
