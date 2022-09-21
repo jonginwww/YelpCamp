@@ -1,4 +1,5 @@
 const Campground = require('../models/campground');
+const {cloudinary} = require('../cloudinary');
 
 // Index
 module.exports.index = async (req, res) => {
@@ -62,10 +63,17 @@ module.exports.renderEditForm = async (req, res) => {
 
 module.exports.updateCampground = async (req, res) => {
     const {id} = req.params;
-    console.log(req.body);
     const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground});
     const imgs = req.files.map(f => ({url: f.path, filename: f.filename}));
     campground.images.push(...imgs);
+    if (req.body.deleteImages) {
+        // Cloudinary에서 이미지 삭제
+        for (let filename of req.body.deleteImages) {
+            await cloudinary.uploader.destroy(filename);
+        }
+        // 데이터베이스에서 이미지 삭제
+        await campground.updateOne({$pull: {images: {filename: {$in: req.body.deleteImages}}}});
+    }
     await campground.save();
     req.flash('success', '수정이 완료되었습니다!');
     res.redirect(`/campgrounds/${campground._id}`);
