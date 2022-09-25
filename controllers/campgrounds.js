@@ -1,5 +1,8 @@
 const Campground = require('../models/campground');
 const {cloudinary} = require('../cloudinary');
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+const mapBoxToken = process.env.MAPBOX_TOKEN;
+const geocoder = mbxGeocoding({accessToken: mapBoxToken});
 
 // Index
 module.exports.index = async (req, res) => {
@@ -14,16 +17,23 @@ module.exports.renderNewForm = (req, res) => {
 };
 
 module.exports.createCampground = async (req, res, next) => {
-    // 새로운 모델 생성
-    const campground = new Campground(req.body.campground);
-    // 암시적 반환
-    campground.images = req.files.map(f => ({url: f.path, filename: f.filename}));
-    // 사용자 ID 저장하기, req.user에는 자동으로 정보가 들어간다.
-    campground.author = req.user._id;
-    await campground.save();
-    // 생성이 완료되면 flash 메시지를 띄운다.
-    req.flash('success', '캠핑장을 생성했습니다!');
-    res.redirect(`/campgrounds/${campground._id}`);
+    const geoData = await geocoder
+        .forwardGeocode({
+            query: req.body.campground.location,
+            limit: 1
+        })
+        .send();
+    res.send(geoData.body.features[0].geometry.coordinates);
+    // // 새로운 모델 생성
+    // const campground = new Campground(req.body.campground);
+    // // 암시적 반환
+    // campground.images = req.files.map(f => ({url: f.path, filename: f.filename}));
+    // // 사용자 ID 저장하기, req.user에는 자동으로 정보가 들어간다.
+    // campground.author = req.user._id;
+    // await campground.save();
+    // // 생성이 완료되면 flash 메시지를 띄운다.
+    // req.flash('success', '캠핑장을 생성했습니다!');
+    // res.redirect(`/campgrounds/${campground._id}`);
 };
 
 // Show
