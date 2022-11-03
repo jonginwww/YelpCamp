@@ -15,6 +15,7 @@ const ExpressError = require('./utils/ExpressError');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
+const mongoSanitize = require('express-mongo-sanitize');
 
 // 라우트
 const userRoutes = require('./routes/users');
@@ -42,6 +43,12 @@ app.use(methodOverride('_method'));
 
 // Static Asset
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(
+    mongoSanitize({
+        replaceWith: '_'
+    })
+);
 
 // Session
 const sessionConfig = {

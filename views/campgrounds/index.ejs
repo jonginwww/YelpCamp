@@ -1,10 +1,7 @@
 <!-- boilerpalate의 body로 템플릿을 전달한다.-->
 <% layout('layouts/boilerplate') %>
-
+<div id="cluster-map"></div>
 <h1>All Campgrounds</h1>
-<div>
-    <a href="/campgrounds/new">Create Campground</a>
-</div>
 
 <% for (let campground of campgrounds) {%>
 <div class="card mb-3">
